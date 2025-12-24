@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosClient = axios.create({
-  baseURL: 'http://localhost:3000', // Đổi port nếu backend chạy port khác
+  baseURL: 'https://miniyoutube-api.azurewebsites.net', // Đổi port nếu backend chạy port khác
   headers: {
     'Content-Type': 'application/json',
   },
