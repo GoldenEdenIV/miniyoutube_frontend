@@ -10,6 +10,7 @@ import Upload from './pages/Upload';
 import Watch from './pages/Watch';
 import Channel from './pages/Channel';
 import Playlists from './pages/Playlists';
+import Admin from './pages/Admin';
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
               <Route path="/watch/:id" element={<Watch />} />
               <Route path="/channel/:username" element={<Channel />} />
               <Route path="/playlists" element={<Playlists />} />
+              <Route path="/admin" element={<Admin />} />
             </Routes>
           </div>
         </div>

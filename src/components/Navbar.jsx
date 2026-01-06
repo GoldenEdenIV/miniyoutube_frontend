@@ -81,6 +81,18 @@ const Navbar = () => {
                       >
                         📌 Playlist
                       </Link>
+                      {user.role === 'ADMIN' && (
+                        <>
+                          <div className="border-t border-gray-600"></div>
+                          <Link 
+                            to="/admin"
+                            className="block px-4 py-2 text-yellow-400 hover:bg-gray-600 transition font-semibold"
+                            onClick={() => setShowUserMenu(false)}
+                          >
+                            ⚙️ Admin Dashboard
+                          </Link>
+                        </>
+                      )}
                       <div className="border-t border-gray-600"></div>
                       <button 
                         onClick={() => {
