@@ -83,10 +83,6 @@ const Login = () => {
           </span>
         </p>
 
-        {/* Note for Admin */}
-        <div className="mt-8 pt-4 border-t border-gray-700 text-xs text-gray-500 text-center">
-          Mẹo: Đăng ký username là <span className="text-yellow-500 font-mono">admin</span> để có quyền xóa video.
-        </div>
       </div>
     </div>
   );
