@@ -115,42 +115,60 @@ export default function AdminVideos() {
               ) : (
                 videos.map((video) => (
                   <div key={video.id} className="bg-gray-800 p-4 rounded-lg hover:bg-gray-750 transition">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-lg mb-2">{video.title}</h3>
-                        <div className="grid grid-cols-4 gap-4 text-sm text-gray-400 mb-3">
-                          <div>
-                            <span className="text-gray-500">Người Upload:</span> {video.uploader}
+                    <div className="flex gap-4">
+                      {/* Thumbnail */}
+                      <div className="flex-shrink-0 w-48 aspect-video rounded overflow-hidden bg-gray-700">
+                        {video.thumbnailUrl ? (
+                          <img 
+                            src={video.thumbnailUrl} 
+                            alt={video.title}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-600">
+                            <span className="text-3xl opacity-50">▶</span>
                           </div>
-                          <div>
-                            <span className="text-gray-500">Trạng Thái:</span> {video.status}
-                          </div>
-                          <div>
-                            <span className="text-gray-500">Lượt Xem:</span> {video.views}
-                          </div>
-                          <div>
-                            <span className="text-gray-500">Thời Lượng:</span> {video.duration}
-                          </div>
-                        </div>
-                        <div className="flex gap-2 text-sm text-gray-400">
-                          <span>👍 {video.likes}</span>
-                          <span>👎 {video.dislikes}</span>
-                          <span>💬 {video.comments} comments</span>
-                        </div>
+                        )}
                       </div>
-                      <div className="flex gap-2 ml-4">
-                        <button
-                          onClick={() => handleViewDetails(video.id)}
-                          className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-sm"
-                        >
-                          Chi Tiết
-                        </button>
-                        <button
-                          onClick={() => handleDeleteVideo(video.id)}
-                          className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-sm"
-                        >
-                          Xóa
-                        </button>
+                      
+                      {/* Info */}
+                      <div className="flex-1 flex justify-between items-start">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-lg mb-2">{video.title}</h3>
+                          <div className="grid grid-cols-4 gap-4 text-sm text-gray-400 mb-3">
+                            <div>
+                              <span className="text-gray-500">Người Upload:</span> {video.uploader}
+                            </div>
+                            <div>
+                              <span className="text-gray-500">Trạng Thái:</span> {video.status}
+                            </div>
+                            <div>
+                              <span className="text-gray-500">Lượt Xem:</span> {video.views}
+                            </div>
+                            <div>
+                              <span className="text-gray-500">Thời Lượng:</span> {video.duration}
+                            </div>
+                          </div>
+                          <div className="flex gap-2 text-sm text-gray-400">
+                            <span>👍 {video.likes}</span>
+                            <span>👎 {video.dislikes}</span>
+                            <span>💬 {video.comments} comments</span>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 ml-4">
+                          <button
+                            onClick={() => handleViewDetails(video.id)}
+                            className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-sm"
+                          >
+                            Chi Tiết
+                          </button>
+                          <button
+                            onClick={() => handleDeleteVideo(video.id)}
+                            className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-sm"
+                          >
+                            Xóa
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>

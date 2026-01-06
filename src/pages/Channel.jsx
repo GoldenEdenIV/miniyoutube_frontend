@@ -10,33 +10,66 @@ const Channel = () => {
   const navigate = useNavigate();
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({ totalViews: 0, videoCount: 0, subscribers: 0 });
+  const [stats, setStats] = useState({ totalViews: 0, videoCount: 0, subscriberCount: 0 });
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [subscribeLoading, setSubscribeLoading] = useState(false);
 
   useEffect(() => {
     loadChannelData();
-  }, [username]);
+    if (user && !isOwnChannel) {
+      checkSubscription();
+    }
+  }, [username, user]);
 
   const loadChannelData = async () => {
     try {
       setLoading(true);
-      // Lấy tất cả video của channel
-      const res = await axiosClient.get('/videos');
-      const channelVideos = res.data.filter(v => v.uploader === username && v.status === 'READY');
-      setVideos(channelVideos);
-      
-      // Tính toán stats
-      const totalViews = channelVideos.reduce((sum, v) => sum + (v.views || 0), 0);
-      const subscribers = Math.floor(Math.random() * 10000) + 100; // Giả lập
-      
+      // Use new channel API endpoint
+      const res = await axiosClient.get(`/channels/${username}`);
+      setVideos(res.data.videos || []);
       setStats({
-        totalViews,
-        videoCount: channelVideos.length,
-        subscribers
+        totalViews: res.data.totalViews || 0,
+        videoCount: res.data.videoCount || 0,
+        subscriberCount: res.data.subscriberCount || 0,
       });
     } catch (err) {
       console.error('Lỗi tải dữ liệu channel:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkSubscription = async () => {
+    try {
+      const res = await axiosClient.get(`/channels/${username}/subscription`);
+      setIsSubscribed(res.data.subscribed);
+    } catch (err) {
+      console.error('Lỗi kiểm tra subscription:', err);
+    }
+  };
+
+  const handleSubscribe = async () => {
+    if (!user) {
+      alert('Vui lòng đăng nhập để theo dõi kênh');
+      navigate('/login');
+      return;
+    }
+
+    setSubscribeLoading(true);
+    try {
+      if (isSubscribed) {
+        await axiosClient.delete(`/channels/${username}/subscribe`);
+        setIsSubscribed(false);
+        setStats(prev => ({ ...prev, subscriberCount: prev.subscriberCount - 1 }));
+      } else {
+        await axiosClient.post(`/channels/${username}/subscribe`);
+        setIsSubscribed(true);
+        setStats(prev => ({ ...prev, subscriberCount: prev.subscriberCount + 1 }));
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || 'Lỗi thao tác');
+    } finally {
+      setSubscribeLoading(false);
     }
   };
 
@@ -74,11 +107,11 @@ const Channel = () => {
                 <div>
                   <p className="text-sm text-gray-400">Người theo dõi</p>
                   <p className="text-2xl font-bold text-white">
-                    {stats.subscribers >= 1000000
-                      ? (stats.subscribers / 1000000).toFixed(1) + 'M'
-                      : stats.subscribers >= 1000
-                      ? (stats.subscribers / 1000).toFixed(1) + 'K'
-                      : stats.subscribers}
+                    {stats.subscriberCount >= 1000000
+                      ? (stats.subscriberCount / 1000000).toFixed(1) + 'M'
+                      : stats.subscriberCount >= 1000
+                      ? (stats.subscriberCount / 1000).toFixed(1) + 'K'
+                      : stats.subscriberCount}
                   </p>
                 </div>
               </div>
@@ -93,8 +126,16 @@ const Channel = () => {
                     ☁️ Tải video mới
                   </button>
                 ) : (
-                  <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full font-bold transition">
-                    ✓ Theo dõi
+                  <button
+                    onClick={handleSubscribe}
+                    disabled={subscribeLoading}
+                    className={`px-6 py-2 rounded-full font-bold transition ${
+                      isSubscribed
+                        ? 'bg-gray-700 hover:bg-gray-600 text-white'
+                        : 'bg-red-600 hover:bg-red-700 text-white'
+                    } ${subscribeLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    {subscribeLoading ? '...' : isSubscribed ? '✓ Đã theo dõi' : '🔔 Theo dõi'}
                   </button>
                 )}
               </div>

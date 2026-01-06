@@ -28,10 +28,19 @@ const VideoCard = ({ video }) => {
     <Link to={`/watch/${video.id}`} className="group cursor-pointer block hover:opacity-80 transition">
       {/* Thumbnail Container */}
       <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-800 mb-3 transition-all duration-200 group-hover:rounded-none group-hover:scale-[1.02] shadow-lg">
-        {/* Ảnh Placeholder */}
-        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-900 text-gray-600">
-          <span className="text-5xl opacity-50">▶</span>
-        </div>
+        {/* Thumbnail Image hoặc Placeholder */}
+        {video.thumbnailUrl ? (
+          <img 
+            src={video.thumbnailUrl} 
+            alt={video.title}
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-900 text-gray-600">
+            <span className="text-5xl opacity-50">▶</span>
+          </div>
+        )}
         
         {/* Badge thời lượng */}
         <div className="absolute bottom-1.5 right-1.5 bg-black/80 px-1.5 py-0.5 rounded text-xs font-bold text-white tracking-wide">

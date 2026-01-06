@@ -16,6 +16,8 @@ const Watch = () => {
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
   const [userLikeStatus, setUserLikeStatus] = useState(null);
   const [isVideoSaved, setIsVideoSaved] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [subscribeLoading, setSubscribeLoading] = useState(false);
 
   const loadData = () => {
     axiosClient.get(`/videos/${id}`)
@@ -26,8 +28,46 @@ const Watch = () => {
           const userLike = res.data.likes.find(l => l.username === user.username);
           setUserLikeStatus(userLike ? userLike.isLike : null);
         }
+        // Check subscription status
+        if (user && res.data.uploader && res.data.uploader !== user.username) {
+          checkSubscription(res.data.uploader);
+        }
       })
       .catch(err => console.error(err));
+  };
+
+  const checkSubscription = async (channelUsername) => {
+    try {
+      const res = await axiosClient.get(`/channels/${channelUsername}/subscription`);
+      setIsSubscribed(res.data.subscribed);
+    } catch (err) {
+      console.error('Lỗi kiểm tra subscription:', err);
+    }
+  };
+
+  const handleSubscribe = async () => {
+    if (!user) {
+      alert('Vui lòng đăng nhập để theo dõi kênh');
+      navigate('/login');
+      return;
+    }
+
+    if (!video?.uploader) return;
+
+    setSubscribeLoading(true);
+    try {
+      if (isSubscribed) {
+        await axiosClient.delete(`/channels/${video.uploader}/subscribe`);
+        setIsSubscribed(false);
+      } else {
+        await axiosClient.post(`/channels/${video.uploader}/subscribe`);
+        setIsSubscribed(true);
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || 'Lỗi thao tác');
+    } finally {
+      setSubscribeLoading(false);
+    }
   };
 
   useEffect(() => { 
@@ -61,7 +101,23 @@ const Watch = () => {
 
   const handleDeleteVideo = async () => {
     if (!window.confirm('Xóa video này?')) return;
-    try { await axiosClient.delete(`/videos/${id}`); navigate('/'); } catch (error) { alert('Lỗi quyền Admin'); }
+    try {
+      await axiosClient.delete(`/videos/${id}`);
+      alert('Xóa video thành công');
+      navigate('/');
+    } catch (error) {
+      alert(error.response?.data?.message || 'Lỗi xóa video');
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    if (!window.confirm('Xóa comment này?')) return;
+    try {
+      await axiosClient.delete(`/videos/comments/${commentId}`);
+      loadData(); // Reload to update comments
+    } catch (error) {
+      alert(error.response?.data?.message || 'Lỗi xóa comment');
+    }
   };
 
   if (!video) return <div className="text-center mt-20 text-gray-500">Đang tải video...</div>;
@@ -116,6 +172,20 @@ const Watch = () => {
                  <h4 className="font-bold text-white">{uploaderName}</h4>
                  <p className="text-xs text-gray-400">Người sáng tạo</p>
                </div>
+               {/* Subscribe button */}
+               {user && video.uploader !== user.username && (
+                 <button
+                   onClick={handleSubscribe}
+                   disabled={subscribeLoading}
+                   className={`ml-2 px-4 py-1.5 rounded-full text-sm font-bold transition ${
+                     isSubscribed
+                       ? 'bg-gray-700 hover:bg-gray-600 text-white'
+                       : 'bg-red-600 hover:bg-red-700 text-white'
+                   } ${subscribeLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                 >
+                   {subscribeLoading ? '...' : isSubscribed ? '✓ Đã theo dõi' : 'Theo dõi'}
+                 </button>
+               )}
             </div>
 
             <div className="flex items-center gap-2">
@@ -145,7 +215,8 @@ const Watch = () => {
                 📌 Lưu
               </button>
               
-              {user?.role === 'ADMIN' && (
+              {/* Delete video button - show for owner or admin */}
+              {user && (user.role === 'ADMIN' || video.uploader === user.username) && (
                 <button onClick={handleDeleteVideo} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full font-bold text-sm transition">🗑️ Xóa</button>
               )}
             </div>
@@ -187,12 +258,24 @@ const Watch = () => {
                 >
                   {c.username[0]}
                 </Link>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <Link to={`/channel/${c.username}`} className="text-xs font-bold text-white hover:text-blue-400 transition">
-                      {c.username}
-                    </Link>
-                    <span className="text-[10px] text-gray-400">Mới đây</span>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Link to={`/channel/${c.username}`} className="text-xs font-bold text-white hover:text-blue-400 transition">
+                        {c.username}
+                      </Link>
+                      <span className="text-[10px] text-gray-400">Mới đây</span>
+                    </div>
+                    {/* Delete button for comment owner or admin */}
+                    {user && (user.role === 'ADMIN' || c.username === user.username) && (
+                      <button
+                        onClick={() => handleDeleteComment(c.id)}
+                        className="text-red-500 hover:text-red-400 text-xs"
+                        title="Xóa comment"
+                      >
+                        ×
+                      </button>
+                    )}
                   </div>
                   <p className="text-sm text-gray-300 mt-0.5">{c.content}</p>
                 </div>
