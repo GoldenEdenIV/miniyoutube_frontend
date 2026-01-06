@@ -41,9 +41,11 @@ const PlaylistModal = ({ isOpen, onClose, videoId }) => {
     }
   };
 
-  const handleAddToPlaylist = async (playlist) => {
+  const handleAddToPlaylist = async (playlistId) => {
     try {
-      const playlistId = playlist.id;
+      const playlist = playlists.find(p => p.id === playlistId);
+      if (!playlist) return;
+
       if (playlist.videoIds.includes(videoId)) {
         await axiosClient.delete(`/playlists/${playlistId}/videos/${videoId}`);
         alert('Xóa khỏi playlist thành công!');
@@ -51,10 +53,10 @@ const PlaylistModal = ({ isOpen, onClose, videoId }) => {
         await axiosClient.post(`/playlists/${playlistId}/videos`, { videoId });
         alert('Thêm vào playlist thành công!');
       }
-      alert('Thêm vào playlist thành công!');
       loadPlaylists();
     } catch (err) {
-      alert('Lỗi thêm video vào playlist');
+      console.error('Lỗi:', err);
+      alert(err.response?.data?.message || 'Lỗi thao tác với playlist');
     }
   };
 
